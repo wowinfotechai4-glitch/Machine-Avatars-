@@ -1,40 +1,33 @@
-const db = require('../config/db');
-
-// 🔐 REGISTER (SP)
-exports.register = (req, res) => {
-  const { email, password } = req.body;
-
-  const keyId = "KEY" + Math.floor(Math.random() * 10000);
-
-  db.query(
-    "CALL AdminRegister(?, ?, ?)",
-    [keyId, email, password],
-    (err) => {
-      if (err) {
-        if (err.code === "ER_DUP_ENTRY") {
-          return res.json({ message: "Email already exists ❌" });
-        }
-        return res.status(500).json(err);
-      }
-
-      res.json({
-        message: "User registered successfully ✅",
-        keyId
-      });
-    }
-  );
-};
-
-
+const Admin = require("../models/adminModel");
 const jwt = require("jsonwebtoken");
 
-exports.login = (req, res) => {
-  const { email, password } = req.body;
+// REGISTER
+exports.register = async (req, res) => {
+  try {
+    const { email, password } = req.body;
+    const keyId = "KEY" + Math.floor(Math.random() * 10000);
 
-  db.query("CALL AdminLogin(?)", [email], (err, results) => {
-    if (err) return res.status(500).json(err);
+    await Admin.register(keyId, email, password);
 
-    const user = results[0][0];
+    res.json({
+      message: "User registered successfully ✅",
+      keyId
+    });
+
+  } catch (err) {
+    if (err.code === "ER_DUP_ENTRY") {
+      return res.json({ message: "Email already exists ❌" });
+    }
+    res.status(500).json(err);
+  }
+};
+
+// LOGIN
+exports.login = async (req, res) => {
+  try {
+    const { email, password } = req.body;
+
+    const user = await Admin.login(email);
 
     if (!user) {
       return res.json({ message: "User not found ❌" });
@@ -44,7 +37,6 @@ exports.login = (req, res) => {
       return res.json({ message: "Wrong password ❌" });
     }
 
-    // ✅ CREATE TOKEN
     const token = jwt.sign(
       { id: user.id, email: user.email },
       "secretkey",
@@ -53,102 +45,97 @@ exports.login = (req, res) => {
 
     res.json({
       message: "Login successful ✅",
-      token, // 🔥 VERY IMPORTANT
+      token,
       user
     });
-  });
+
+  } catch (err) {
+    res.status(500).json(err);
+  }
 };
 
-// 📊 DASHBOARD STATS (SP)
-exports.getDashboardStats = (req, res) => {
-  db.query("CALL GetDashboardStats()", (err, results) => {
-    if (err) return res.status(500).json(err);
-
-    res.json(results[0][0]);
-  });
+// DASHBOARD
+exports.getDashboardStats = async (req, res) => {
+  try {
+    const data = await Admin.getDashboardStats();
+    res.json(data);
+  } catch (err) {
+    res.status(500).json(err);
+  }
 };
 
-
-// 👥 GET USERS (SP)
-exports.getUsers = (req, res) => {
-  db.query("CALL GetAllUsers()", (err, results) => {
-    if (err) return res.status(500).json(err);
-
-    res.json(results[0]);
-  });
+// USERS
+exports.getUsers = async (req, res) => {
+  try {
+    const users = await Admin.getUsers();
+    res.json(users);
+  } catch (err) {
+    res.status(500).json(err);
+  }
 };
 
+// ADD USER
+exports.addUser = async (req, res) => {
+  try {
+    const { keyId, email, password } = req.body;
 
-// ➕ ADD USER (SP)
-exports.addUser = (req, res) => {
-  const { keyId, email, password } = req.body;
+    await Admin.addUser(keyId, email, password);
 
-  db.query(
-    "CALL AddUser(?, ?, ?)",
-    [keyId, email, password],
-    (err) => {
-      if (err) return res.status(500).json(err);
+    res.json({ message: "User added successfully ✅" });
 
-      res.json({ message: "User added successfully ✅" });
-    }
-  );
+  } catch (err) {
+    res.status(500).json(err);
+  }
 };
 
+// UPDATE USER
+exports.updateUser = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { email, status } = req.body;
 
-// ✏️ UPDATE USER (SP)
-exports.updateUser = (req, res) => {
-  const { id } = req.params;
-  const { email, status } = req.body;
+    await Admin.updateUser(id, email, status);
 
-  db.query(
-    "CALL UpdateUser(?, ?, ?)",
-    [id, email, status],
-    (err) => {
-      if (err) return res.status(500).json(err);
+    res.json({ message: "User updated successfully ✅" });
 
-      res.json({ message: "User updated successfully ✅" });
-    }
-  );
+  } catch (err) {
+    res.status(500).json(err);
+  }
 };
 
+// DELETE USER
+exports.deleteUser = async (req, res) => {
+  try {
+    const { id } = req.params;
 
-// ❌ DELETE USER (SP)
-exports.deleteUser = (req, res) => {
-  const { id } = req.params;
+    await Admin.deleteUser(id);
 
-  db.query(
-    "CALL DeleteUser(?)",
-    [id],
-    (err) => {
-      if (err) return res.status(500).json(err);
+    res.json({ message: "User deleted successfully ✅" });
 
-      res.json({ message: "User deleted successfully ✅" });
-    }
-  );
+  } catch (err) {
+    res.status(500).json(err);
+  }
 };
 
-
-// 🤖 GET BOT SETTINGS (SP)
-exports.getBotSettings = (req, res) => {
-  db.query("CALL GetBotSettings()", (err, results) => {
-    if (err) return res.status(500).json(err);
-
-    res.json(results[0][0] || {});
-  });
+// BOT SETTINGS
+exports.getBotSettings = async (req, res) => {
+  try {
+    const settings = await Admin.getBotSettings();
+    res.json(settings);
+  } catch (err) {
+    res.status(500).json(err);
+  }
 };
 
+exports.saveBotSettings = async (req, res) => {
+  try {
+    const { bot_name, welcome_message, theme_color } = req.body;
 
-// 🤖 SAVE BOT SETTINGS (SP)
-exports.saveBotSettings = (req, res) => {
-  const { bot_name, welcome_message, theme_color } = req.body;
+    await Admin.saveBotSettings(bot_name, welcome_message, theme_color);
 
-  db.query(
-    "CALL SaveBotSettings(?, ?, ?)",
-    [bot_name, welcome_message, theme_color],
-    (err) => {
-      if (err) return res.status(500).json(err);
+    res.json({ message: "Bot settings saved ✅" });
 
-      res.json({ message: "Bot settings saved ✅" });
-    }
-  );
+  } catch (err) {
+    res.status(500).json(err);
+  }
 };
