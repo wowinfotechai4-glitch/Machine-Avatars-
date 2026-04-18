@@ -1,0 +1,125 @@
+/* BACKGROUND */
+.login-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  background: linear-gradient(to right, #eef2f7, #e3e6f0);
+}
+
+/* CARD */
+.login-box {
+  width: 420px;
+  padding: 40px;
+  border-radius: 15px;
+  background: #f4f5fb;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+  text-align: center;
+}
+
+.login-box h2 {
+  color: #1a237e;
+}
+
+.subtitle {
+  color: gray;
+  margin-bottom: 25px;
+}
+
+/* INPUT GROUP */
+.input-group {
+  position: relative;
+  margin-bottom: 15px;
+}
+
+.input-group input {
+  width: 100%;
+  padding: 12px 40px;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+  outline: none;
+}
+
+.input-group input:focus {
+  border-color: #3f51b5;
+}
+
+/* ICON LEFT */
+.icon {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  color: gray;
+}
+
+/* EYE ICON RIGHT */
+.eye {
+  position: absolute;
+  right: 12px;
+  top: 12px;
+  cursor: pointer;
+  color: gray;
+}
+
+/* CAPTCHA */
+.captcha {
+  margin: 15px 0;
+  display: flex;
+  justify-content: center;
+}
+
+/* FORGOT PASSWORD */
+.forgot {
+  text-align: right;
+  color: orange;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+/* 🔥 GLOBAL BUTTON (NO FULL WIDTH) */
+button {
+  padding: 10px 16px;
+  background: #3f51b5;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  margin-top: 15px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+button:hover {
+  background: #303f9f;
+}
+
+/* ✅ LOGIN BUTTON FULL WIDTH ONLY */
+.login-box button {
+  width: 100%;
+}
+
+/* 🔥 LOGOUT BUTTON (MEDIUM SIZE) */
+.logout-btn {
+  padding: 8px 18px;
+  font-size: 14px;
+  border-radius: 6px;
+  background-color: #dc3545;
+  color: white;
+  border: none;
+  cursor: pointer;
+  width: auto;
+}
+
+.logout-btn:hover {
+  background-color: #c82333;
+}
+
+/* SIGNUP TEXT */
+.signup {
+  margin-top: 15px;
+  font-size: 14px;
+}
+
+.signup span {
+  color: blue;
+  cursor: pointer;
+}
