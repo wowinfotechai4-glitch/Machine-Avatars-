@@ -4,7 +4,7 @@ const db = mysql.createConnection({
   host: "localhost",
   user: "root",
   password: "",
-  database: "machine_avatar",
+  database: "machineavatar",
   port: 3306
 });
 
@@ -12,7 +12,7 @@ db.connect((err) => {
   if (err) {
     console.error("DB Error:", err);
   } else {
-    console.log("MySQL Connected ✅");
+    console.log("MySQL Connected");
   }
 });
 

@@ -4,7 +4,7 @@ const db = require("../config/db");
 exports.createSource = (content, type = "manual") => {
   return new Promise((resolve, reject) => {
     db.query(
-      "INSERT INTO data_sources (content, type) VALUES (?, ?)",
+      "INSERT INTO tb_data_sources (content, type) VALUES (?, ?)",
       [content, type],
       (err, result) => {
         if (err) reject(err);
@@ -18,7 +18,7 @@ exports.createSource = (content, type = "manual") => {
 exports.getSourceById = (id) => {
   return new Promise((resolve, reject) => {
     db.query(
-      "SELECT * FROM data_sources WHERE id = ?",
+      "SELECT * FROM tb_data_sources WHERE id = ?",
       [id],
       (err, results) => {
         if (err) reject(err);
@@ -32,7 +32,7 @@ exports.getSourceById = (id) => {
 exports.getAllSources = () => {
   return new Promise((resolve, reject) => {
     db.query(
-      "SELECT * FROM data_sources ORDER BY id DESC",
+      "SELECT * FROM tb_data_sources ORDER BY id DESC",
       (err, results) => {
         if (err) reject(err);
         else resolve(results);
@@ -45,7 +45,7 @@ exports.getAllSources = () => {
 exports.deleteSource = (id) => {
   return new Promise((resolve, reject) => {
     db.query(
-      "DELETE FROM data_sources WHERE id = ?",
+      "DELETE FROM tb_data_sources WHERE id = ?",
       [id],
       (err, result) => {
         if (err) reject(err);

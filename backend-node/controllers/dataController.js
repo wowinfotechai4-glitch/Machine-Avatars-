@@ -1,64 +1,28 @@
 const db = require("../config/db");
 const axios = require("axios");
 const cheerio = require("cheerio");
-const fs = require("fs");
-const path = require("path");
 
 const cleanText = require("../utils/textCleaner");
-const chunkText = require("../utils/chunker"); // 🔥 NEW
+const chunkText = require("../utils/chunker");
 
 
-
-//  UPLOAD FILE 
-exports.uploadFile = (req, res) => {
-  try {
-    if (!req.file) {
-      return res.status(400).json({ message: "No file uploaded" });
-    }
-
-    const filePath = path.join(__dirname, "../uploads", req.file.filename);
-    let content = fs.readFileSync(filePath, "utf-8");
-
-    // 🔹 CLEAN TEXT
-    const cleaned = cleanText(content);
-
-    // 🔹 CHUNK TEXT
-    const chunks = chunkText(cleaned);
-
-    // 🔹 SAVE EACH CHUNK
-    chunks.forEach((chunk) => {
-      db.query(
-        "CALL AdminLogin(?)",
-        [chunk],
-        (err) => {
-          if (err) console.log("Chunk insert error:", err);
-        }
-      );
-    });
-
-    res.json({
-      message: "File uploaded + cleaned + chunked + saved",
-      total_chunks: chunks.length
-    });
-
-  } catch (err) {
-    console.log(err);
-    res.status(500).json({ message: "Upload error" });
-  }
-};
-
-
-
-// SCRAPE URL 
+// ================= SCRAPE URL =================
 exports.scrapeUrl = async (req, res) => {
+
   try {
+
     const { url } = req.body;
 
     if (!url) {
-      return res.status(400).json({ message: "URL required " });
+      return res.status(400).json({
+        message: "URL required ❌"
+      });
     }
 
+    // FETCH WEBSITE
     const response = await axios.get(url);
+
+    // LOAD HTML
     const $ = cheerio.load(response.data);
 
     let text = "";
@@ -67,123 +31,168 @@ exports.scrapeUrl = async (req, res) => {
       text += $(el).text() + " ";
     });
 
-    // 🔹 CLEAN
+    // CLEAN TEXT
     const cleaned = cleanText(text);
 
-    // 🔹 CHUNK
+    // CREATE CHUNKS
     const chunks = chunkText(cleaned);
 
-    // 🔹 SAVE
+    // SAVE CHUNKS
     chunks.forEach((chunk) => {
+
       db.query(
-        "INSERT INTO data_chunks (content) VALUES (?)",
+        "INSERT INTO tb_data_chunks (content) VALUES (?)",
         [chunk],
         (err) => {
           if (err) console.log(err);
         }
       );
+
     });
 
     res.json({
-      message: "Scraped + cleaned + chunked + saved ",
+      message: "Scraped + cleaned + chunked + saved ✅",
       total_chunks: chunks.length
     });
 
   } catch (err) {
+
     res.status(500).json({
-      message: "Scrape error ",
+      message: "Scrape error ❌",
       error: err.message
     });
+
   }
+
 };
 
 
-
-// SAVE DATA
+// ================= SAVE DATA =================
 exports.saveData = (req, res) => {
+
   const { content } = req.body;
 
   if (!content) {
-    return res.status(400).json({ message: "Content required " });
+
+    return res.status(400).json({
+      message: "Content required ❌"
+    });
+
   }
 
-  //CLEAN + CHUNK
+  // CLEAN TEXT
   const cleaned = cleanText(content);
+
+  // CREATE CHUNKS
   const chunks = chunkText(cleaned);
 
+  // SAVE CHUNKS
   chunks.forEach((chunk) => {
+
     db.query(
-      "INSERT INTO data_chunks (content) VALUES (?)",
+      "INSERT INTO tb_data_chunks (content) VALUES (?)",
       [chunk],
       (err) => {
         if (err) console.log(err);
       }
     );
+
   });
 
   res.json({
-    message: "Data cleaned + chunked + saved",
+    message: "Data cleaned + chunked + saved ✅",
     total_chunks: chunks.length
   });
+
 };
 
 
-
-//GET ALL DATA 
+// ================= GET ALL DATA =================
 exports.getAllData = (req, res) => {
-  db.query("SELECT * FROM data_chunks ORDER BY id DESC", (err, result) => {
-    if (err) return res.status(500).json(err);
 
-    res.json(result);
-  });
+  db.query(
+    "SELECT * FROM tb_data_chunks ORDER BY id DESC",
+    (err, result) => {
+
+      if (err) {
+        return res.status(500).json(err);
+      }
+
+      res.json(result);
+
+    }
+  );
+
 };
 
-// 🔥 PROCESS DATA → CREATE CHUNKS
+
+// ================= PROCESS DATA =================
 exports.processData = (req, res) => {
+
   const { sourceId } = req.body;
 
   if (!sourceId) {
-    return res.status(400).json({ message: "sourceId required ❌" });
+
+    return res.status(400).json({
+      message: "sourceId required ❌"
+    });
+
   }
 
   db.query(
-    "SELECT content FROM data_sources WHERE id = ?",
+    "SELECT content FROM tb_data_sources WHERE id = ?",
     [sourceId],
     (err, result) => {
+
       if (err) {
         return res.status(500).json(err);
       }
 
       if (result.length === 0) {
-        return res.status(404).json({ message: "No data found ❌" });
+
+        return res.status(404).json({
+          message: "No data found ❌"
+        });
+
       }
 
       const content = result[0].content;
 
-      // 🔹 CHUNK TEXT
+      // CREATE CHUNKS
       const chunks = content.match(/.{1,200}/g);
 
       if (!chunks) {
-        return res.json({ message: "No chunks created" });
+
+        return res.json({
+          message: "No chunks created"
+        });
+
       }
 
-      let count = 0;
+      let inserted = 0;
 
-      chunks.forEach(chunk => {
+      chunks.forEach((chunk) => {
+
         db.query(
-          "INSERT INTO data_chunks (content, source_id) VALUES (?, ?)",
+          "INSERT INTO tb_data_chunks (content, source_id) VALUES (?, ?)",
           [chunk, sourceId],
           (err) => {
-            if (!err) count++;
+
+            if (!err) {
+              inserted++;
+            }
+
           }
         );
+
       });
 
-      // 🔥 IMPORTANT RESPONSE
       res.json({
-        message: "Data processed & chunked",
+        message: "Data processed & chunked ✅",
         totalChunks: chunks.length
       });
+
     }
   );
+
 };

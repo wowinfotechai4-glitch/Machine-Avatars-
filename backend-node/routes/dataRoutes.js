@@ -20,7 +20,6 @@ const storage = multer.diskStorage({
 const upload = multer({ storage });
 
 // ROUTES
-router.post("/upload", upload.single("file"), dataController.uploadFile);
 router.post("/scrape", dataController.scrapeUrl);
 router.post("/save", dataController.saveData);
 router.get("/all", dataController.getAllData);

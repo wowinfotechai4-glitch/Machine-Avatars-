@@ -10,9 +10,9 @@ require('./config/db');
 app.use(cors());
 app.use(express.json());
 
-const adminRoutes = require('./routes/adminRoutes');
+const UserRoutes = require('./routes/UserRoutes');
 
-app.use('/api/admin', adminRoutes);
+app.use('/api/user', UserRoutes);
 
 app.get('/', (req, res) => {
   res.send("Server running");
