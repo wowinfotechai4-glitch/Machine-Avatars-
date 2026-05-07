@@ -34,3 +34,7 @@ console.log("SearchRoutes:", searchRoutes);
 const chatRoutes = require("./routes/chatRoutes");
 
 app.use("/api/chat", chatRoutes);
+
+const blogRoutes = require("./routes/blogRoutes");
+
+app.use("/api/blogs", blogRoutes);
